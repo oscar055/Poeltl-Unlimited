@@ -1,6 +1,6 @@
 from flask_restful import Resource
 
-from poeltl import generate_random_player_id, search_player_info, search_team_info, search_team
+from poeltl import generate_random_player_id, search_player_info, search_team_info, search_team, get_team_logo
 
 
 class SearchForPlayer(Resource):
@@ -26,4 +26,12 @@ class GenerateRandomPlayerInfo(Resource):
 class GenerateRandomTeamInfo(Resource):
     def get(self):
         return search_team_info(
-            search_player_info(generate_random_player_id())["CommonPlayerInfo"][0]["TEAM_ABBREVIATION"])
+            search_player_info(generate_random_player_id())["team_abbr"])
+
+
+class SaveTeamLogo(Resource):
+    def get(self, team_abbr):
+        get_team_logo(abbr=team_abbr.lower())
+
+        return {1: "success"}
+

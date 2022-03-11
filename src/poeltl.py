@@ -9,26 +9,25 @@ from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
 import emoji
 
 from variables import NBA_TEAM_ABBREVIATIONS, LOGO_URL, LOGO_LOCATION, NBA_TEAM_CONFERENCES, NBA_TEAM_DIVISIONS, \
-    MAX_GUESSES
+    MAX_GUESSES, PARTIAL, CORRECT, WRONG
 
 
 def get_path(path: str):
     return os.path.join(os.path.dirname(__file__), path)
 
 
-def init_logos():
-    for abbr in NBA_TEAM_ABBREVIATIONS:
-        with open(get_path(LOGO_LOCATION.format(abbr=abbr)), 'wb') as f:
-            response = requests.get(LOGO_URL.format(abbr=abbr.lower()), stream=True)
+def get_team_logo(abbr: str):
+    with open(get_path(LOGO_LOCATION.format(abbr=abbr)), 'wb') as f:
+        response = requests.get(LOGO_URL.format(abbr=abbr.lower()), stream=True)
 
-            if not response.ok:
-                print(response)
+        if not response.ok:
+            print(response)
 
-            for block in response.iter_content(1024):
-                if not block:
-                    break
+        for block in response.iter_content(1024):
+            if not block:
+                break
 
-                f.write(block)
+            f.write(block)
 
 
 def generate_random_player_id():
@@ -66,7 +65,7 @@ def search_player_info(player_id: int):
 
 
 def search_player_by_name(player_name: str):
-    return search_player_info(players.find_players_by_full_name(player_name)[0]['id'])
+    return search_player_info(players.find_players_by_full_name(player_name)[0]["id"])
 
 
 def search_team_info(team_abbreviation: str):
@@ -83,66 +82,80 @@ def height_to_int(height: str):
     return int(foot) * 12 + int(inches)
 
 
-def compare_players(actual, expected):
-    # :green_square: = correct
-    # :yellow_square: = partial
-    # :black_large_square: = wrong
-
-    guess_result = "Name ({})".format(actual["name"])
+def compare_name(actual, expected):
     if actual["name"] == expected["name"]:
-        guess_result += ":green_square:"
-    else:
-        guess_result += ":black_large_square:"
+        return CORRECT
+    return WRONG
+
+
+def compare_team(actual, expected):
+    if actual["team_id"] == expected["team_id"]:
+        return CORRECT
+    if expected["prev_teams"].__contains__(actual["team_id"]):
+        return PARTIAL
+    return WRONG
+
+
+def compare_conf(actual, expected):
+    if actual["conf"] == expected["conf"]:
+        return CORRECT
+    return WRONG
+
+
+def compare_div(actual, expected):
+    if actual["div"] == expected["div"]:
+        return CORRECT
+    return WRONG
+
+
+def compare_pos(actual, expected):
+    if actual["pos"] == expected["pos"]:
+        return CORRECT
+    if expected["pos"].__contains__(actual["pos"]) or actual["pos"].__contains__(expected["pos"]):
+        return PARTIAL
+    return WRONG
+
+
+def compare_players(actual, expected):
+    guess_result = "Name ({})".format(actual["name"])
+    guess_result += compare_name(actual, expected)
 
     guess_result += "Team ({})".format(actual["team_abbr"])
-    if actual["team_id"] == expected["team_id"]:
-        guess_result += ":green_square:"
-    elif expected["prev_teams"].__contains__(actual["team_id"]):
-        guess_result += ":yellow_square:"
-    else:
-        guess_result += ":black_large_square:"
+    guess_result += compare_team(actual, expected)
 
     guess_result += "Conf ({})".format(actual["conf"])
-    if actual["conf"] == expected["conf"]:
-        guess_result += ":green_square:"
-    else:
-        guess_result += ":black_large_square:"
+    guess_result += compare_conf(actual, expected)
 
     guess_result += "Div ({})".format(actual["div"])
-    if actual["div"] == expected["div"]:
-        guess_result += ":green_square:"
-    else:
-        guess_result += ":black_large_square:"
+    guess_result += compare_div(actual, expected)
 
     guess_result += "Pos ({})".format(actual["pos"])
-    if actual["pos"] == expected["pos"]:
-        guess_result += ":green_square:"
-    elif expected["pos"].__contains__(actual["pos"]):
-        guess_result += ":yellow_square:"
-    else:
-        guess_result += ":black_large_square:"
+    guess_result += compare_pos(actual, expected)
+
+    actual_height = height_to_int(actual["ht"])
+    expected_height = height_to_int(expected["ht"])
 
     guess_result += "Ht"
-    if actual["ht"] == expected["ht"]:
-        guess_result += ":green_square:"
+    if actual_height == expected_height:
+        guess_result += CORRECT
     else:
-        if abs(height_to_int(actual["ht"]) - height_to_int(expected["ht"])) <= 2:
-            guess_result += ":yellow_square:"
+        if abs(actual_height - expected_height) <= 2:
+            guess_result += PARTIAL
         else:
-            guess_result += ":black_large_square:"
-        if height_to_int(actual["ht"]) < height_to_int(expected["ht"]):
+            guess_result += WRONG
+        if actual_height < expected_height:
             guess_result += "{}↑".format(actual["ht"])
         else:
             guess_result += "{}↓".format(actual["ht"])
 
     guess_result += "Age"
     if actual["age"] == expected["age"]:
-        guess_result += ":green_square:"
+        guess_result += CORRECT
     else:
         if abs(actual["age"] - expected["age"]) <= 2:
-            guess_result += ":yellow_square:"
+            guess_result += PARTIAL
         else:
-            guess_result += ":black_large_square:"
+            guess_result += WRONG
         if actual["age"] < expected["age"]:
             guess_result += "{}↑".format(actual["age"])
         else:
@@ -150,18 +163,57 @@ def compare_players(actual, expected):
 
     guess_result += "#"
     if actual["#"] == expected["#"]:
-        guess_result += ":green_square:"
+        guess_result += CORRECT
     else:
         if abs(actual["#"] - expected["#"]) <= 2:
-            guess_result += ":yellow_square:"
+            guess_result += PARTIAL
         else:
-            guess_result += ":black_large_square:"
+            guess_result += WRONG
         if actual["#"] < expected["#"]:
             guess_result += "{}↑".format(actual["#"])
         else:
             guess_result += "{}↓".format(actual["#"])
 
     return guess_result
+
+
+def score_guess(actual, expected):
+    guess_result = ""
+    guess_result += compare_name(actual, expected)
+
+    guess_result += compare_team(actual, expected)
+
+    guess_result += compare_conf(actual, expected)
+
+    guess_result += compare_div(actual, expected)
+
+    guess_result += compare_pos(actual, expected)
+
+    if actual["ht"] == expected["ht"]:
+        guess_result += CORRECT
+    else:
+        if abs(height_to_int(actual["ht"]) - height_to_int(expected["ht"])) <= 2:
+            guess_result += PARTIAL
+        else:
+            guess_result += WRONG
+
+    if actual["age"] == expected["age"]:
+        guess_result += CORRECT
+    else:
+        if abs(actual["age"] - expected["age"]) <= 2:
+            guess_result += PARTIAL
+        else:
+            guess_result += WRONG
+
+    if actual["#"] == expected["#"]:
+        guess_result += CORRECT
+    else:
+        if abs(actual["#"] - expected["#"]) <= 2:
+            guess_result += PARTIAL
+        else:
+            guess_result += WRONG
+
+    return guess_result + " " + actual["name"]
 
 
 def game():
@@ -173,13 +225,16 @@ def game():
     while not done:
         guess_num = 1
         correct = False
+        score = "-- {name} --\n".format(name=random_player["name"])
 
-        while guess_num < MAX_GUESSES:
+        while guess_num <= MAX_GUESSES:
             guess = input(f"Guess #{guess_num} of {MAX_GUESSES}: ")
 
             guessed_player = search_player_by_name(guess)
 
             print(emoji.emojize(compare_players(guessed_player, random_player)))
+
+            score += score_guess(guessed_player, random_player) + "\n"
 
             if guessed_player == random_player:
                 correct = True
@@ -188,11 +243,15 @@ def game():
             guess_num += 1
 
         if correct:
-            print("Well done!")
+            print("\nWell done!\n")
         else:
-            print("Better luck next time!")
+            print("\nBetter luck next time!\n")
 
-        play_again = input("Would you like to play again? (y/n)")
+        print("The correct answer was", random_player["name"], end="\n\n")
+
+        print(emoji.emojize(score))
+
+        play_again = input("Would you like to play again? (y/n): ")
         done = False if play_again == "y" else True
 
 

@@ -1,5 +1,9 @@
 MAX_GUESSES = 8
 
+WRONG = ":black_large_square:"
+PARTIAL = ":yellow_square:"
+CORRECT = ":green_square:"
+
 NBA_TEAM_ABBREVIATIONS = ['ATL', 'BKN', 'BOS', 'CHA', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW', 'HOU', 'IND', 'LAC',
                           'LAL', 'MEM', 'MIA', 'MIL', 'MIN', 'NOP', 'NYK', 'OKC', 'ORL', 'PHI', 'PHX', 'POR', 'SAC',
                           'SAS', 'TOR', 'UTA', 'WAS']
