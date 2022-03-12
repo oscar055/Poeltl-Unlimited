@@ -18,3 +18,6 @@ Jersey Number (#): Green = Correct, Yellow = Within 2 Numbers, White = Wrong by 
 Players may use the "View Silhouette" button if they are stuck.
 
 ## Credits
+Inspired by original Poeltl ( https://poeltl.dunk.town/ ), with some inspiration from Wordle ( https://www.nytimes.com/games/wordle/index.html )
+
+All code in this GitHub repo was written by Collin Giess
