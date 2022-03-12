@@ -4,29 +4,188 @@
     <meta charset="UTF-8">
     <title>Poeltl Unlimited</title>
     <link rel="stylesheet" type="text/css" href="../static/mainpage.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Smooch+Sans&family=Source+Sans+Pro&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="navbar">
         <ul>
+            <li><button onclick="toggleStatsPopup()">Stats</button></li>
+            <li><button onclick="toggleHelpPopup()">How to Play</button></li>
         </ul>
     </div>
     <header>
-        <div class="container">
+        <div class="container" id="header-container">
             <h1>POELTL UNLIMITED</h1>
         </div>
     </header>
     <main>
         <div class="container">
-
+            <div class="searchbar-container">
+                <form action="{{url_for('render_main_page_guess', player_id=1)}}" method="post" autocomplete="disabled">
+                    <label>
+                        <input autocomplete="disabled" name="fdijasoifjdsoia123ijfodasj4151iojfsa" type="text" style="display:none;">
+                    </label>
+                    <label for="playerGuess">
+                            <input name="playerGuess" id="playerGuess" type="text" placeholder="Guess #1 of 8" autocomplete="disabled" {% if input_enabled %} class="searchbar" {% else %} class="searchbar disabled" disabled {% endif %}>
+                    </label>
+                </form>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="table-name">Name</th>
+                            <th class="table-team">Team</th>
+                            <th class="table-conf">Conf</th>
+                            <th class="table-div">Div</th>
+                            <th class="table-pos">Pos</th>
+                            <th class="table-ht">Ht</th>
+                            <th class="table-age">Age</th>
+                            <th class="table-num">#</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in data.items() %}
+                            <tr>
+                                <td class="table-name">{{value.name}}</td>
+                                <td class="table-team">{{value.team}}</td>
+                                <td class="table-conf">{{value.conf}}</td>
+                                <td class="table-div">{{value.div}}</td>
+                                <td class="table-pos">{{value.pos}}</td>
+                                <td class="table-ht">{{value.ht}}</td>
+                                <td class="table-age">{{value.age}}</td>
+                                <td class="table-num">{{value.num}}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="popup-container stats" id="statsPopup">
+                <div class="overlay" onclick="toggleStatsPopup()"></div>
+                <div class="content">
+                    <div class="popup-close" onclick="toggleStatsPopup()">&times;</div>
+                    <h3>Stats</h3>
+                    <div class="statistics">
+                        <div class="statistic-container">
+                            <div class="label">Played</div>
+                            <div class="statistic" id="gamesPlayed">1</div>
+                        </div>
+                        <div class="statistic-container">
+                            <div class="label">Win %</div>
+                            <div class="statistic" id="win%">100</div>
+                        </div>
+                        <div class="statistic-container">
+                            <div class="label">Current Streak</div>
+                            <div class="statistic" id="streak">1</div>
+                        </div>
+                        <div class="statistic-container">
+                            <div class="label">Max Streak</div>
+                            <div class="statistic" id="maxStreak">1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-container help" id="helpPopup">
+                <div class="overlay" onclick="toggleHelpPopup()"></div>
+                <div class="content">
+                    <div class="popup-close" onclick="toggleHelpPopup()">&times;</div>
+                    <h3>How to Play</h3>
+                    <ul>
+                        <li>You have 8 guesses to guess the generated NBA player</li>
+                        <li><mark class="highlight-green">If a tile is green,</mark> then that tile is correct</li>
+                        <li><mark class="highlight-yellow">If the <b>team</b> tile is yellow,</mark> the player once played for that team, but not currently</li>
+                        <li><mark class="highlight-yellow">If the <b>position (Pos)</b> tile is yellow,</mark> there is a partial match for the player's position</li>
+                        <li><mark class="highlight-yellow">If the <b>height (Ht)</b> tile is yellow,</mark> the player is within 2"</li>
+                        <li><mark class="highlight-yellow">If the <b>age</b> tile is yellow,</mark> the player is within 2 years</li>
+                        <li><mark class="highlight-yellow">If the <b>jersey number (#)</b> tile is yellow,</mark> the player is within 2 numbers</li>
+                        <li>↑ means that the generated player's corresponding attribute is higher</li>
+                        <li>↓ means that the generated player's corresponding attribute is lower</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </main>
     <div class="footer-container">
         <footer>
-            <ul class="list-inline">
-                <li class="list-inline-item"><a href="mailto:giesscollin@gmail.com">Contact</a></li>
-            </ul>
             <p class="copyright">Collin Giess © 2022</p>
         </footer>
     </div>
-</body>
+
+    <script>
+        function gameCounter() {
+            if(typeof(Storage) !== 'undefined') {
+                if(localStorage.gameCount) {
+                    localStorage.gameCount = Number(localStorage.gameCount) + 1;
+                } else {
+                    localStorage.gameCount = 1;
+                }
+
+                document.getElementById("gamesPlayed").innerHTML = localStorage.gameCount;
+            } else {
+                document.getElementById("gamesPlayed").innerHTML = "?";
+            }
+        }
+
+        function winCounter() {
+            if(typeof(Storage) !== 'undefined') {
+                if (localStorage.winCount) {
+                    localStorage.winCount = Number(localStorage.winCount) + 1;
+                } else {
+                    localStorage.winCount = 1;
+                }
+
+                if(localStorage.winStreak) {
+                    localStorage.winStreak = Number(localStorage.winStreak) + 1;
+                } else {
+                    localStorage.winStreak = 1;
+                }
+
+                if(localStorage.maxWinStreak) {
+                    if (localStorage.maxWinStreak < localStorage.winStreak) {
+                        localStorage.maxWinStreak = localStorage.winStreak;
+                    }
+                } else {
+                    localStorage.maxWinStreak = 1;
+                }
+
+                document.getElementById("win%").innerHTML = String(localStorage.winCount / localStorage.lossCount);
+            } else {
+                document.getElementById("win%").innerHTML = "?";
+            }
+        }
+
+        function lossCounter() {
+            if(typeof(Storage) !== 'undefined') {
+                if (localStorage.lossCount) {
+                    localStorage.lossCount = Number(localStorage.lossCount) + 1;
+                } else {
+                    localStorage.lossCount = 1;
+                }
+
+                localStorage.winStreak = 0;
+
+                document.getElementById("win%").innerHTML = String(localStorage.winCount / localStorage.lossCount);
+            } else {
+                document.getElementById("win%").innerHTML = "?";
+            }
+        }
+
+        function toggleStatsPopup() {
+            if(document.getElementById("helpPopup").classList.contains("active")) {
+                document.getElementById("helpPopup").classList.toggle("active")
+            }
+            document.getElementById("statsPopup").classList.toggle("active")
+        }
+
+        function toggleHelpPopup() {
+            if(document.getElementById("statsPopup").classList.contains("active")) {
+                document.getElementById("statsPopup").classList.toggle("active")
+            }
+            document.getElementById("helpPopup").classList.toggle("active")
+        }
+    </script>
+    </body>
 </html>

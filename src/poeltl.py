@@ -1,14 +1,14 @@
 import datetime
 import os
+import time
 from random import randint
 
-import requests
-from nba_api.stats.static import players, teams
-from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
-
 import emoji
+import requests
+from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
+from nba_api.stats.static import players, teams
 
-from variables import NBA_TEAM_ABBREVIATIONS, LOGO_URL, LOGO_LOCATION, NBA_TEAM_CONFERENCES, NBA_TEAM_DIVISIONS, \
+from variables import LOGO_URL, LOGO_LOCATION, NBA_TEAM_CONFERENCES, NBA_TEAM_DIVISIONS, \
     MAX_GUESSES, PARTIAL, CORRECT, WRONG
 
 
@@ -36,31 +36,41 @@ def generate_random_player_id():
     return player_list[randint(0, len(player_list))]["id"]
 
 
-def search_player_info(player_id: int):
-    player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id).get_normalized_dict()
-    team_logo = get_path(LOGO_LOCATION.format(abbr=player_info["CommonPlayerInfo"][0]["TEAM_ABBREVIATION"]))
+def search_player_info(player_id: int, player_info=None, request_limit=0):
+    if player_info is None:
+        time.sleep(request_limit)
 
-    birth_date = datetime.datetime.fromisoformat(player_info["CommonPlayerInfo"][0]["BIRTHDATE"][0:10])
+        player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id) \
+            .get_normalized_dict()["CommonPlayerInfo"][0]
+    team_logo = get_path(LOGO_LOCATION.format(abbr=player_info["TEAM_ABBREVIATION"]))
 
+    birth_date = datetime.datetime.fromisoformat(player_info["BIRTHDATE"][0:10])
+
+    # Find the player's previous teams
     previous_teams = set()
+
     career_stats = playercareerstats.PlayerCareerStats(player_id=player_id).get_normalized_dict()
+    time.sleep(request_limit)
+
     for season in career_stats["SeasonTotalsRegularSeason"]:
-        previous_teams.add(season["TEAM_ID"])
-    previous_teams.remove(player_info["CommonPlayerInfo"][0]["TEAM_ID"])
+        if season["TEAM_ID"] != 0:
+            previous_teams.add(season["TEAM_ID"])
+
+    previous_teams.discard(player_info["TEAM_ID"])
 
     return {
         "id": player_id,
-        "name": player_info["CommonPlayerInfo"][0]["DISPLAY_FIRST_LAST"],
-        "team_abbr": player_info["CommonPlayerInfo"][0]["TEAM_ABBREVIATION"],
+        "name": player_info["DISPLAY_FIRST_LAST"],
+        "team_abbr": player_info["TEAM_ABBREVIATION"],
         "team_logo": team_logo,
-        "team_id": player_info["CommonPlayerInfo"][0]["TEAM_ID"],
+        "team_id": player_info["TEAM_ID"],
         "prev_teams": list(previous_teams),
-        "conf": NBA_TEAM_CONFERENCES[player_info["CommonPlayerInfo"][0]["TEAM_ABBREVIATION"]],
-        "div": NBA_TEAM_DIVISIONS[player_info["CommonPlayerInfo"][0]["TEAM_ABBREVIATION"]],
-        "pos": player_info["CommonPlayerInfo"][0]["POSITION"],
-        "ht": player_info["CommonPlayerInfo"][0]["HEIGHT"],
+        "conf": NBA_TEAM_CONFERENCES[player_info["TEAM_ABBREVIATION"]],
+        "div": NBA_TEAM_DIVISIONS[player_info["TEAM_ABBREVIATION"]],
+        "pos": player_info["POSITION"],
+        "ht": player_info["HEIGHT"],
         "age": abs((datetime.datetime.now() - birth_date).days) // 365,
-        "#": int(player_info["CommonPlayerInfo"][0]["JERSEY"])
+        "num": int(player_info["JERSEY"])
     }
 
 
@@ -137,7 +147,7 @@ def compare_players(actual, expected):
 
     guess_result += "Ht"
     if actual_height == expected_height:
-        guess_result += CORRECT
+        guess_result += CORRECT + expected["ht"]
     else:
         if abs(actual_height - expected_height) <= 2:
             guess_result += PARTIAL
@@ -150,7 +160,7 @@ def compare_players(actual, expected):
 
     guess_result += "Age"
     if actual["age"] == expected["age"]:
-        guess_result += CORRECT
+        guess_result += CORRECT + str(expected["age"])
     else:
         if abs(actual["age"] - expected["age"]) <= 2:
             guess_result += PARTIAL
@@ -161,18 +171,18 @@ def compare_players(actual, expected):
         else:
             guess_result += "{}↓".format(actual["age"])
 
-    guess_result += "#"
-    if actual["#"] == expected["#"]:
-        guess_result += CORRECT
+    guess_result += "num"
+    if actual["num"] == expected["num"]:
+        guess_result += CORRECT + str(actual["num"])
     else:
-        if abs(actual["#"] - expected["#"]) <= 2:
+        if abs(actual["num"] - expected["num"]) <= 2:
             guess_result += PARTIAL
         else:
             guess_result += WRONG
-        if actual["#"] < expected["#"]:
-            guess_result += "{}↑".format(actual["#"])
+        if actual["num"] < expected["num"]:
+            guess_result += "{}↑".format(actual["num"])
         else:
-            guess_result += "{}↓".format(actual["#"])
+            guess_result += "{}↓".format(actual["num"])
 
     return guess_result
 
@@ -205,10 +215,10 @@ def score_guess(actual, expected):
         else:
             guess_result += WRONG
 
-    if actual["#"] == expected["#"]:
+    if actual["num"] == expected["num"]:
         guess_result += CORRECT
     else:
-        if abs(actual["#"] - expected["#"]) <= 2:
+        if abs(actual["num"] - expected["num"]) <= 2:
             guess_result += PARTIAL
         else:
             guess_result += WRONG
@@ -217,15 +227,24 @@ def score_guess(actual, expected):
 
 
 def game():
-    player_id = generate_random_player_id()
-    random_player = search_player_info(player_id=player_id)
-
     done = False
 
     while not done:
+        player_id = generate_random_player_id()
+
+        while True:
+            try:
+                random_player = search_player_info(player_id=player_id)
+            except ValueError:
+                player_id = generate_random_player_id()
+            else:
+                break
+
         guess_num = 1
         correct = False
         score = "-- {name} --\n".format(name=random_player["name"])
+
+        print(random_player)
 
         while guess_num <= MAX_GUESSES:
             guess = input(f"Guess #{guess_num} of {MAX_GUESSES}: ")

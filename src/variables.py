@@ -9,6 +9,7 @@ NBA_TEAM_ABBREVIATIONS = ['ATL', 'BKN', 'BOS', 'CHA', 'CHI', 'CLE', 'DAL', 'DEN'
                           'SAS', 'TOR', 'UTA', 'WAS']
 
 NBA_TEAM_CONFERENCES = {
+    '': "Bruh",
     'ATL': "East",
     'BKN': "East",
     'BOS': "East",
@@ -42,6 +43,7 @@ NBA_TEAM_CONFERENCES = {
 }
 
 NBA_TEAM_DIVISIONS = {
+    '': "Bruh",
     'ATL': "SE",
     'BKN': "Atl.",
     'BOS': "Atl.",
