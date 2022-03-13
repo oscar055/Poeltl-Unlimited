@@ -16,6 +16,6 @@ Age: Green = Correct, Yellow = Within 2 Years, White = Wrong by more than 2 year
 Jersey Number (#): Green = Correct, Yellow = Within 2 Numbers, White = Wrong by more than 2 numbers\
 
 ## Credits
-Inspired by original Poeltl (https://poeltl.dunk.town/), with some inspiration from Wordle (https://www.nytimes.com/games/wordle/index.html)\
+Inspired by original Poeltl (https://poeltl.dunk.town/), with some inspiration from Wordle (https://www.nytimes.com/games/wordle/index.html)  \
 \
 All code in this GitHub repo was written by Collin Giess
