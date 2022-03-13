@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Poeltl Unlimited</title>
-    <link rel="stylesheet" type="text/css" href="../static/mainpage.css">
+    <link rel="icon" type="image/png" href="">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='mainpage.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet">
@@ -24,13 +25,23 @@
     <main>
         <div class="container">
             <div class="searchbar-container">
-                <form action="{{url_for('render_main_page_guess', player_id=1)}}" method="post" autocomplete="disabled">
+                <form action="{{url_for('render_main_page_guess', player_id=1)}}" method="post" autocomplete="off">
                     <label>
                         <input autocomplete="disabled" name="fdijasoifjdsoia123ijfodasj4151iojfsa" type="text" style="display:none;">
                     </label>
                     <label for="playerGuess">
-                            <input name="playerGuess" id="playerGuess" type="text" placeholder="Guess #1 of 8" autocomplete="disabled" {% if input_enabled %} class="searchbar" {% else %} class="searchbar disabled" disabled {% endif %}>
+                            <input name="playerGuess" id="playerGuess" type="text" placeholder="Guess #{{guess_num}} of 8" autocomplete="disabled" {% if input_enabled %} class="searchbar" {% else %} class="searchbar disabled" disabled {% endif %}>
                     </label>
+                    <div class="autocomplete-box">
+                        <ul>
+                            <li>LeBron James</li>
+                            <li>Austin Reaves</li>
+                            <li>Carmelo Anthony</li>
+                            <li>Russel Westbrook</li>
+                            <li>Malik Monk</li>
+                            <li>Dwight Howard</li>
+                        </ul>
+                    </div>
                 </form>
             </div>
             <div class="table-container">
@@ -50,14 +61,14 @@
                     <tbody>
                         {% for key, value in data.items() %}
                             <tr>
-                                <td class="table-name">{{value.name}}</td>
-                                <td class="table-team">{{value.team}}</td>
-                                <td class="table-conf">{{value.conf}}</td>
-                                <td class="table-div">{{value.div}}</td>
-                                <td class="table-pos">{{value.pos}}</td>
-                                <td class="table-ht">{{value.ht}}</td>
-                                <td class="table-age">{{value.age}}</td>
-                                <td class="table-num">{{value.num}}</td>
+                                <td class="table-name {{value.name_accuracy}}">{{value.name}}</td>
+                                <td class="table-team {{value.team_accuracy}}">{{value.team}}</td>
+                                <td class="table-conf {{value.conf_accuracy}}">{{value.conf}}</td>
+                                <td class="table-div {{value.div_accuracy}}">{{value.div}}</td>
+                                <td class="table-pos {{value.pos_accuracy}}">{{value.pos}}</td>
+                                <td class="table-ht {{value.ht_accuracy}}">{{value.ht}}{{value.ht_direction}}</td>
+                                <td class="table-age {{value.age_accuracy}}">{{value.age}}{{value.age_direction}}</td>
+                                <td class="table-num {{value.name_accuracy}}">{{value.num}}{{value.num_direction}}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -113,6 +124,9 @@
             <p class="copyright">Collin Giess © 2022</p>
         </footer>
     </div>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='script.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='completions.js') }}"></script>
 
     <script>
         function gameCounter() {

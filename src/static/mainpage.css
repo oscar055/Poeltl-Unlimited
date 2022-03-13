@@ -1,6 +1,6 @@
 :root {
-    --color-yellow: #f5ff69;
-    --color-green: #69ff6b;
+    --color-yellow: #f3ff47;
+    --color-green: #11cd47;
     --color-gray: darkgray;
 
     --background-color: #fdffd9;
@@ -29,9 +29,57 @@ html {
     left: 50%;
 }
 
+.searchbar-container.active .autocomplete-box {
+    padding: 0;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.searchbar-container .autocomplete-box {
+    padding: 0;
+
+    position: absolute;
+
+    width: 560px;
+
+    left: 50%;
+
+    max-height: 280px;
+    overflow-y: auto;
+    opacity: 0;
+    pointer-events: none;
+
+    z-index: 3;
+
+    transform: translate(-280px);
+}
+
+.autocomplete-box ul {
+    display: none;
+    white-space: nowrap;
+    padding: 0;
+}
+
+.autocomplete-box li {
+    list-style: none;
+    padding: 8px 12px;
+    cursor: default;
+    border-radius: 3px;
+
+    background-color: white;
+}
+
+.autocomplete-box li:hover {
+    background-color: #efefef;
+
+    cursor: pointer;
+}
+
 .searchbar {
-    width: 35%;
+    width: 540px;
     height: 75px;
+
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.1);
 
     background-color: white;
 
@@ -46,6 +94,10 @@ html {
     color: cadetblue;
 }
 
+.searchbar.active .autocomplete-box li {
+    display: block;
+}
+
 .searchbar.disabled {
     background-color: var(--background-color);
 }
@@ -57,6 +109,19 @@ html {
 
 .table-container {
     padding-top: 25px;
+}
+
+.table-name {
+    font-weight: bold;
+}
+
+table .green {
+    background-color: var(--color-green);
+    color: white;
+}
+
+table .yellow {
+    background-color: var(--color-yellow);
 }
 
 table {
@@ -98,6 +163,14 @@ td {
 
 .popup-container {
     padding-top: 57px;
+}
+
+.popup-container .statistics {
+    color: dimgray;
+}
+
+.popup-container .label {
+    font-weight: bold;
 }
 
 .popup-container li {
@@ -164,7 +237,7 @@ td {
     color: white;
 
     font-size: 25px;
-    font-weight: 600;
+    font-weight: bold;
 
     line-height: 30px;
 
@@ -246,7 +319,7 @@ body {
     background: none!important;
     border: none;
 
-    color:white;
+    color: white;
 
     padding: 14px 16px;
 }

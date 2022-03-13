@@ -1,33 +1,13 @@
 import datetime
-import os
 import time
 from random import randint
 
 import emoji
-import requests
 from nba_api.stats.endpoints import commonplayerinfo, playercareerstats
 from nba_api.stats.static import players, teams
 
-from variables import LOGO_URL, LOGO_LOCATION, NBA_TEAM_CONFERENCES, NBA_TEAM_DIVISIONS, \
+from variables import NBA_TEAM_CONFERENCES, NBA_TEAM_DIVISIONS, \
     MAX_GUESSES, PARTIAL, CORRECT, WRONG
-
-
-def get_path(path: str):
-    return os.path.join(os.path.dirname(__file__), path)
-
-
-def get_team_logo(abbr: str):
-    with open(get_path(LOGO_LOCATION.format(abbr=abbr)), 'wb') as f:
-        response = requests.get(LOGO_URL.format(abbr=abbr.lower()), stream=True)
-
-        if not response.ok:
-            print(response)
-
-        for block in response.iter_content(1024):
-            if not block:
-                break
-
-            f.write(block)
 
 
 def generate_random_player_id():
@@ -38,11 +18,9 @@ def generate_random_player_id():
 
 def search_player_info(player_id: int, player_info=None, request_limit=0):
     if player_info is None:
-        time.sleep(request_limit)
-
         player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id) \
             .get_normalized_dict()["CommonPlayerInfo"][0]
-    team_logo = get_path(LOGO_LOCATION.format(abbr=player_info["TEAM_ABBREVIATION"]))
+        time.sleep(request_limit)
 
     birth_date = datetime.datetime.fromisoformat(player_info["BIRTHDATE"][0:10])
 
@@ -62,7 +40,6 @@ def search_player_info(player_id: int, player_info=None, request_limit=0):
         "id": player_id,
         "name": player_info["DISPLAY_FIRST_LAST"],
         "team_abbr": player_info["TEAM_ABBREVIATION"],
-        "team_logo": team_logo,
         "team_id": player_info["TEAM_ID"],
         "prev_teams": list(previous_teams),
         "conf": NBA_TEAM_CONFERENCES[player_info["TEAM_ABBREVIATION"]],
@@ -243,8 +220,6 @@ def game():
         guess_num = 1
         correct = False
         score = "-- {name} --\n".format(name=random_player["name"])
-
-        print(random_player)
 
         while guess_num <= MAX_GUESSES:
             guess = input(f"Guess #{guess_num} of {MAX_GUESSES}: ")
